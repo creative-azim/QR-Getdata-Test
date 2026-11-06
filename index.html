@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Vehicle Sticker Scanner</title>
-  <!-- HTML5 QRCode Library -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     * {
@@ -23,37 +22,90 @@
       width: 100%;
       max-width: 420px;
       background: #ffffff;
-      padding: 16px;
+      padding: 18px;
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     h2 {
-      margin: 0 0 10px 0;
+      margin: 0 0 12px 0;
       text-align: center;
       color: #222;
-      font-size: 20px;
+      font-size: 21px;
     }
-    .status-bar {
+
+    /* --- LOGIN SCREEN STYLES --- */
+    #loginSection {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+      font-size: 15px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 11px;
+      font-size: 16px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+    }
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      font-size: 17px;
+      font-weight: bold;
+      background-color: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .btn-login:disabled {
+      background-color: #88b4e0;
+      cursor: not-allowed;
+    }
+
+    /* --- APP HEADER & STATUS BAR --- */
+    #appSection {
+      display: none;
+    }
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 12px;
-      color: #555;
+      color: #444;
       margin-bottom: 12px;
-      padding: 6px 10px;
+      padding: 7px 10px;
       background: #eef2f6;
       border-radius: 6px;
     }
-    .sync-btn {
-      background: none;
+    .top-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .small-btn {
+      background: #fff;
       border: 1px solid #0066cc;
       color: #0066cc;
       border-radius: 4px;
-      padding: 2px 8px;
+      padding: 3px 8px;
       font-size: 12px;
       cursor: pointer;
+      font-weight: 600;
     }
-    /* QR Scanner Viewport */
+    .logout-btn {
+      border-color: #c81e1e;
+      color: #c81e1e;
+    }
+
+    /* --- QR SCANNER & SEARCH --- */
     #reader {
       width: 100%;
       border-radius: 8px;
@@ -61,7 +113,6 @@
       border: 2px solid #333;
       background: #000;
     }
-    /* Manual Fallback Search */
     .manual-box {
       display: flex;
       gap: 8px;
@@ -84,7 +135,8 @@
       cursor: pointer;
       font-weight: bold;
     }
-    /* Exact Match to Display.jpg Table */
+
+    /* --- DISPLAY.JPG EXACT TABLE FORMAT --- */
     #resultSection {
       display: none;
       margin-top: 10px;
@@ -103,7 +155,7 @@
       color: #000;
     }
     .details-table th {
-      background-color: #fce4d6; /* Exact peach shade from Display.jpg */
+      background-color: #fce4d6;
       text-align: left;
       font-weight: 700;
       width: 55%;
@@ -114,16 +166,18 @@
       font-weight: 500;
       width: 45%;
     }
+
     .error-msg {
       display: none;
-      margin-top: 14px;
-      padding: 12px;
+      margin-top: 12px;
+      padding: 10px;
       background: #fde8e8;
       border: 1px solid #f8b4b4;
       color: #c81e1e;
       text-align: center;
       font-weight: bold;
       border-radius: 6px;
+      font-size: 14px;
     }
     .btn-scan-again {
       width: 100%;
@@ -137,9 +191,6 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .btn-scan-again:active {
-      background-color: #004c99;
-    }
   </style>
 </head>
 <body>
@@ -147,29 +198,51 @@
 <div class="container">
   <h2>Vehicle Sticker Verification</h2>
 
-  <div class="status-bar">
-    <span id="dbStatus">Loading database...</span>
-    <button class="sync-btn" onclick="fetchSheetData(true)">Refresh Data</button>
+  <!-- ================= 1. LOGIN SCREEN ================= -->
+  <div id="loginSection">
+    <form onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="userIdInput">User ID</label>
+        <input type="text" id="userIdInput" placeholder="Enter User ID" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="passwordInput">Password</label>
+        <input type="password" id="passwordInput" placeholder="Enter Password" required autocomplete="current-password" />
+      </div>
+      <button type="submit" id="loginBtn" class="btn-login">Login & Load Data</button>
+    </form>
+    <div id="loginError" class="error-msg"></div>
   </div>
 
-  <!-- Scanner View -->
-  <div id="scannerSection">
-    <div id="reader"></div>
-    <div class="manual-box">
-      <input type="text" id="manualInput" placeholder="Or enter Sticker No. (e.g. 1002)" />
-      <button onclick="handleManualSearch()">Search</button>
+  <!-- ================= 2. MAIN SCANNER APP ================= -->
+  <div id="appSection">
+    <div class="top-bar">
+      <span id="dbStatus">Ready</span>
+      <div class="top-actions">
+        <button class="small-btn" onclick="syncDatabase()">Sync</button>
+        <button class="small-btn logout-btn" onclick="handleLogout()">Logout</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Error Message -->
-  <div id="errorBox" class="error-msg"></div>
+    <!-- Scanner Viewport -->
+    <div id="scannerSection">
+      <div id="reader"></div>
+      <div class="manual-box">
+        <input type="text" id="manualInput" placeholder="Or enter Sticker No. (e.g. 1002)" />
+        <button onclick="handleManualSearch()">Search</button>
+      </div>
+    </div>
 
-  <!-- Result View (Matches Display.jpg) -->
-  <div id="resultSection">
-    <table class="details-table" id="vehicleTable">
-      <tbody></tbody>
-    </table>
-    <button class="btn-scan-again" onclick="startScanner()">Scan Next Vehicle</button>
+    <!-- Error Message -->
+    <div id="errorBox" class="error-msg"></div>
+
+    <!-- Result Table (Matches Display.jpg) -->
+    <div id="resultSection">
+      <table class="details-table" id="vehicleTable">
+        <tbody></tbody>
+      </table>
+      <button class="btn-scan-again" onclick="startScanner()">Scan Next Vehicle</button>
+    </div>
   </div>
 </div>
 
@@ -179,7 +252,6 @@
   // =========================================================================
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRX5IYn-lAafoGPePBgUtc3ae9zTSrbK3MsZje7pGQI9Glj1JQcJOcBVc1PxFvXtZ6Yg/exec";
 
-  // Exact field list matching Display.jpg and your Excel columns
   const FIELDS = [
     "Sticker No.",
     "Wing",
@@ -200,7 +272,7 @@
   let html5QrCode = null;
   let isScanning = false;
 
-  // Beep sound on successful scan using Web Audio API
+  // Sound + vibration feedback on QR scan
   function playBeep() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -217,36 +289,100 @@
     if (navigator.vibrate) navigator.vibrate(100);
   }
 
-  // Load cached data immediately, then fetch fresh data from Google Sheet
-  async function fetchSheetData(forceRefresh = false) {
-    const statusEl = document.getElementById("dbStatus");
-    const cached = localStorage.getItem("vehicleDB_cache");
+  // Handle Login Form Submission
+  async function handleLogin(e) {
+    e.preventDefault();
+    const userId = document.getElementById("userIdInput").value.trim();
+    const password = document.getElementById("passwordInput").value.trim();
+    const loginBtn = document.getElementById("loginBtn");
+    const loginError = document.getElementById("loginError");
 
-    if (cached && !forceRefresh) {
-      vehicleDB = JSON.parse(cached);
-      statusEl.textContent = `Ready (${Object.keys(vehicleDB).length} stickers loaded)`;
-    } else {
-      statusEl.textContent = "Syncing with Google Sheet...";
-    }
+    loginError.style.display = "none";
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Verifying...";
 
     try {
-      const response = await fetch(GOOGLE_SCRIPT_URL);
+      const url = `${GOOGLE_SCRIPT_URL}?userId=${encodeURIComponent(userId)}&password=${encodeURIComponent(password)}`;
+      const response = await fetch(url);
       const json = await response.json();
+
       if (json.status === "success") {
+        // Save session and vehicle database locally
         vehicleDB = json.records;
+        sessionStorage.setItem("auth_user", userId);
+        sessionStorage.setItem("auth_pass", password);
         localStorage.setItem("vehicleDB_cache", JSON.stringify(vehicleDB));
-        statusEl.textContent = `Synced (${Object.keys(vehicleDB).length} stickers)`;
+
+        showScannerApp(userId, Object.keys(vehicleDB).length);
+      } else {
+        loginError.textContent = json.message || "Invalid User ID or Password.";
+        loginError.style.display = "block";
       }
     } catch (err) {
-      if (Object.keys(vehicleDB).length > 0) {
-        statusEl.textContent = `Offline Mode (${Object.keys(vehicleDB).length} cached)`;
-      } else {
-        statusEl.textContent = "Check Google Script URL / Internet";
-      }
+      loginError.textContent = "Connection error. Please check your internet or Script URL.";
+      loginError.style.display = "block";
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Login & Load Data";
     }
   }
 
-  // Initialize and start the rear camera
+  // Unlock App UI and start camera
+  function showScannerApp(user, count) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("appSection").style.display = "block";
+    document.getElementById("dbStatus").textContent = `${user} (${count} stickers)`;
+    startScanner();
+  }
+
+  // Re-sync data while logged in
+  async function syncDatabase() {
+    const userId = sessionStorage.getItem("auth_user");
+    const password = sessionStorage.getItem("auth_pass");
+    const statusEl = document.getElementById("dbStatus");
+
+    if (!userId || !password) {
+      handleLogout();
+      return;
+    }
+
+    statusEl.textContent = "Syncing...";
+    try {
+      const url = `${GOOGLE_SCRIPT_URL}?userId=${encodeURIComponent(userId)}&password=${encodeURIComponent(password)}`;
+      const response = await fetch(url);
+      const json = await response.json();
+
+      if (json.status === "success") {
+        vehicleDB = json.records;
+        localStorage.setItem("vehicleDB_cache", JSON.stringify(vehicleDB));
+        statusEl.textContent = `${userId} (${Object.keys(vehicleDB).length} stickers)`;
+      } else {
+        alert("Session expired or password changed. Please login again.");
+        handleLogout();
+      }
+    } catch (err) {
+      statusEl.textContent = `${userId} (Offline cache)`;
+    }
+  }
+
+  // Logout & wipe local data
+  function handleLogout() {
+    sessionStorage.clear();
+    localStorage.removeItem("vehicleDB_cache");
+    vehicleDB = {};
+
+    if (html5QrCode && isScanning) {
+      html5QrCode.stop().catch(() => {});
+      isScanning = false;
+    }
+
+    document.getElementById("userIdInput").value = "";
+    document.getElementById("passwordInput").value = "";
+    document.getElementById("appSection").style.display = "none";
+    document.getElementById("loginSection").style.display = "block";
+  }
+
+  // Start Mobile Rear Camera
   function startScanner() {
     document.getElementById("resultSection").style.display = "none";
     document.getElementById("errorBox").style.display = "none";
@@ -266,7 +402,7 @@
         playBeep();
         stopScannerAndShowResult(decodedText.trim());
       },
-      (errorMessage) => { /* Ignore frame scan errors */ }
+      (errorMessage) => {}
     ).then(() => {
       isScanning = true;
     }).catch((err) => {
@@ -295,12 +431,10 @@
     }
   }
 
-  // Extract Sticker No. and build the Display.jpg table
   function displayStickerDetails(rawScan) {
     const errorBox = document.getElementById("errorBox");
     errorBox.style.display = "none";
 
-    // Handle cases where QR contains plain "1002" or text like "Sticker No: 1002"
     let record = vehicleDB[rawScan];
     if (!record) {
       const match = rawScan.match(/\b(\d{4,})\b/);
@@ -337,10 +471,16 @@
     document.getElementById("resultSection").style.display = "block";
   }
 
-  // Start on page load
+  // Restore session if user refreshes page while already logged in
   window.addEventListener("DOMContentLoaded", () => {
-    fetchSheetData();
-    startScanner();
+    const savedUser = sessionStorage.getItem("auth_user");
+    const cachedDB = localStorage.getItem("vehicleDB_cache");
+
+    if (savedUser && cachedDB) {
+      vehicleDB = JSON.parse(cachedDB);
+      showScannerApp(savedUser, Object.keys(vehicleDB).length);
+      syncDatabase();
+    }
   });
 </script>
 
