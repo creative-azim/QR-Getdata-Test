@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Vehicle Sticker Scanner</title>
+  <title>Heaven Plaza Vehicle Record</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     * {
@@ -12,7 +12,7 @@
     }
     body {
       margin: 0;
-      padding: 15px;
+      padding: 8px;
       background-color: #f4f6f9;
       display: flex;
       flex-direction: column;
@@ -20,51 +20,65 @@
     }
     .container {
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
       background: #ffffff;
-      padding: 18px;
+      padding: 12px 14px;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     }
-    h2 {
-      margin: 0 0 12px 0;
+
+    /* --- HEADER & DEVELOPER CREDIT --- */
+    .header-box {
       text-align: center;
-      color: #222;
-      font-size: 21px;
+      margin-bottom: 8px;
+    }
+    .header-box h2 {
+      margin: 0;
+      color: #111;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+    .header-box .dev-credit {
+      margin: 2px 0 0 0;
+      font-size: 13px;
+      color: #555;
+      font-weight: 600;
     }
 
     /* --- LOGIN SCREEN STYLES --- */
     #loginSection {
       display: block;
+      margin-top: 10px;
     }
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .form-group label {
       display: block;
       font-weight: bold;
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       color: #333;
-      font-size: 15px;
+      font-size: 14px;
     }
     .form-group input {
       width: 100%;
-      padding: 11px;
+      padding: 10px;
       font-size: 16px;
       border: 1px solid #bbb;
       border-radius: 6px;
     }
     .btn-login {
       width: 100%;
-      padding: 12px;
-      font-size: 17px;
+      padding: 11px;
+      font-size: 16px;
       font-weight: bold;
       background-color: #0066cc;
       color: #fff;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .btn-login:disabled {
       background-color: #88b4e0;
@@ -81,8 +95,8 @@
       align-items: center;
       font-size: 12px;
       color: #444;
-      margin-bottom: 12px;
-      padding: 7px 10px;
+      margin-bottom: 6px;
+      padding: 5px 8px;
       background: #eef2f6;
       border-radius: 6px;
     }
@@ -95,8 +109,8 @@
       border: 1px solid #0066cc;
       color: #0066cc;
       border-radius: 4px;
-      padding: 3px 8px;
-      font-size: 12px;
+      padding: 2px 7px;
+      font-size: 11px;
       cursor: pointer;
       font-weight: 600;
     }
@@ -105,9 +119,10 @@
       color: #c81e1e;
     }
 
-    /* --- QR SCANNER & SEARCH --- */
+    /* --- COMPACT QR SCANNER & SEARCH --- */
     #reader {
       width: 100%;
+      margin: 0;
       border-radius: 8px;
       overflow: hidden;
       border: 2px solid #333;
@@ -115,19 +130,19 @@
     }
     .manual-box {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
+      gap: 6px;
+      margin-top: 6px;
     }
     .manual-box input {
       flex: 1;
-      padding: 10px;
-      font-size: 16px;
+      padding: 8px 10px;
+      font-size: 15px;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
     .manual-box button {
-      padding: 10px 16px;
-      font-size: 16px;
+      padding: 8px 14px;
+      font-size: 15px;
       background: #222;
       color: #fff;
       border: none;
@@ -136,10 +151,10 @@
       font-weight: bold;
     }
 
-    /* --- DISPLAY.JPG EXACT TABLE FORMAT --- */
+    /* --- COMPACT SINGLE-SCREEN TABLE (Matches Display.jpg) --- */
     #resultSection {
       display: none;
-      margin-top: 10px;
+      margin-top: 4px;
     }
     .details-table {
       width: 100%;
@@ -150,40 +165,41 @@
     .details-table th,
     .details-table td {
       border: 1px solid #000;
-      padding: 10px 12px;
-      font-size: 17px;
+      padding: 5px 10px; /* Compact row height so all 13 rows fit on one screen */
+      font-size: 15px;
+      line-height: 1.15;
       color: #000;
     }
     .details-table th {
       background-color: #fce4d6;
       text-align: left;
       font-weight: 700;
-      width: 55%;
+      width: 52%;
     }
     .details-table td {
       background-color: #ffffff;
       text-align: center;
       font-weight: 500;
-      width: 45%;
+      width: 48%;
     }
 
     .error-msg {
       display: none;
-      margin-top: 12px;
-      padding: 10px;
+      margin-top: 8px;
+      padding: 8px;
       background: #fde8e8;
       border: 1px solid #f8b4b4;
       color: #c81e1e;
       text-align: center;
       font-weight: bold;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 13px;
     }
     .btn-scan-again {
       width: 100%;
-      margin-top: 16px;
-      padding: 12px;
-      font-size: 17px;
+      margin-top: 8px;
+      padding: 10px;
+      font-size: 16px;
       font-weight: bold;
       background-color: #0066cc;
       color: white;
@@ -196,7 +212,11 @@
 <body>
 
 <div class="container">
-  <h2>Vehicle Sticker Verification</h2>
+  <!-- Persistent Header (Shown on both Login & Main App) -->
+  <div class="header-box">
+    <h2>Heaven Plaza Vehicle Record</h2>
+    <p class="dev-credit">(Developed by : Azim Bhayani)</p>
+  </div>
 
   <!-- ================= 1. LOGIN SCREEN ================= -->
   <div id="loginSection">
@@ -307,7 +327,6 @@
       const json = await response.json();
 
       if (json.status === "success") {
-        // Save session and vehicle database locally
         vehicleDB = json.records;
         sessionStorage.setItem("auth_user", userId);
         sessionStorage.setItem("auth_pass", password);
@@ -382,7 +401,7 @@
     document.getElementById("loginSection").style.display = "block";
   }
 
-  // Start Mobile Rear Camera
+  // Start Mobile Rear Camera with aspectRatio: 1.0
   function startScanner() {
     document.getElementById("resultSection").style.display = "none";
     document.getElementById("errorBox").style.display = "none";
@@ -397,7 +416,11 @@
 
     html5QrCode.start(
       { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 240, height: 240 } },
+      {
+        fps: 10,
+        qrbox: { width: 210, height: 210 },
+        aspectRatio: 1.0
+      },
       (decodedText) => {
         playBeep();
         stopScannerAndShowResult(decodedText.trim());
